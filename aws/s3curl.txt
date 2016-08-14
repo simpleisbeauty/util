@@ -1,6 +1,0 @@
-s3curl.sh is a simple bash tool inspired by s3curl.pl -- http://aws.amazon.com/code/128
-http://s3.amazonaws.com/doc/s3-developer-guide/RESTAuthentication.html
-
-export s3Key=AKIAJAN5SR746W4YPMSQ
-export s3Secret=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
-
