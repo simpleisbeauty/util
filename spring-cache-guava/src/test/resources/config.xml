@@ -4,29 +4,31 @@
        xmlns:cache="http://www.springframework.org/schema/cache"
        xsi:schemaLocation = "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
-    <bean id="dataBean" class="org.simple.springframework.cache.guava.DataBean"/>
+
     <cache:annotation-driven cache-manager="cacheManager"/>
+
+    <bean id="dataBean" class="org.simple.springframework.cache.guava.DataBean"/>
+
+    <!-- cache config 1 with 1 minutes expiration -->
     <bean id="dataCacheConfig" class="org.simple.springframework.cache.guava.GuavaCacheManager.GuavaCacheConfig">
         <constructor-arg index="0" value="data"/>
         <constructor-arg index="1" value="100"/>
         <constructor-arg index="2" value="1"/>
     </bean>
+    <!-- cache config 2 with 2 minutes expiration -->
     <bean id="dataCacheConfig2" class="org.simple.springframework.cache.guava.GuavaCacheManager.GuavaCacheConfig">
         <constructor-arg index="0" value="data2"/>
         <constructor-arg index="1" value="100"/>
         <constructor-arg index="2" value="2"/>
     </bean>
-    <!-- Definition for javaCollection -->
-    <bean id = "cacheManager" class = "org.simple.springframework.cache.guava.GuavaCacheManager">
 
-        <!-- results in a setAddressList(java.util.List) call -->
+    <bean id = "cacheManager" class = "org.simple.springframework.cache.guava.GuavaCacheManager">
         <constructor-arg index="0">
             <list>
                 <ref bean = "dataCacheConfig"/>
                 <ref bean = "dataCacheConfig2"/>
             </list>
         </constructor-arg>
-
     </bean>
 
 </beans>
