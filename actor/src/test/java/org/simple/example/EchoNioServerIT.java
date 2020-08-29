@@ -25,7 +25,7 @@ public class EchoNioServerIT {
         new Thread(nio).start();
 
         EchoNioServer echoSrv= new EchoNioServer();
-        echoSrv.listen(nio, new int[]{9001, 9000, 9002, 9003});
+        echoSrv.listen(nio, new int[]{9002, 9003});
 
         int[] ports={9000, 9001, 9002, 9000, 9003, 9001}; // 9000,9001 started echo server at pre-integration phase
         int l= ports.length;
