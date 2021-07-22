@@ -11,9 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 
-/**
- * Created by johnny on 7/25/18.
- */
+
 public class EchoNioServerIT {
     @Test
     public void echoClient() throws IOException, Exception{

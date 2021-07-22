@@ -34,6 +34,7 @@ public class FunctionActor<T,R> extends Actor<T> {
             nextActor.accept(rst);
         }
     }
+
     // must catch all Exception and set status inside func apply(), because run in ExecutorService
     private final Function<T,R> fun;
     private Consumer<R> nextActor;

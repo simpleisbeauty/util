@@ -16,7 +16,10 @@ public abstract class Actor<T> implements Consumer<T>, AutoCloseable {
     public void accept(T o) {
 
         inQue.offer(o);
+        syncRun();
+    }
 
+    private void syncRun() {
         // assure single thread running
         if (running.compareAndSet(false, true)) {
             exec.submit(() -> {
@@ -32,15 +35,20 @@ public abstract class Actor<T> implements Consumer<T>, AutoCloseable {
     @Override
     public void close() {
         // loop until actor not running and empty in Queue
-        while (!running.compareAndSet(false, false) ||
-                !inQue.isEmpty()) {
+        while (running.get()== true || !inQue.isEmpty()) {
+            try {
+                syncRun();
+                Thread.sleep(5);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     // must catch all Exception inside, because run in ExecutorService
     public abstract void process(T t);
 
-    private AtomicBoolean running = new AtomicBoolean(false);
+    private volatile AtomicBoolean running = new AtomicBoolean(false);
 
     protected final ExecutorService exec;
     private final ConcurrentLinkedQueue<T> inQue;
