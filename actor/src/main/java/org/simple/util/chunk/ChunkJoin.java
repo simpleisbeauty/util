@@ -1,22 +1,23 @@
-package org.simple.example;
+package org.simple.util.chunk;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Phaser;
 import java.util.function.Consumer;
+import static org.simple.util.chunk.ChunkStore.Chunk;
 
 
-public class ChunkJoin implements Consumer<SplitInput.Chunk> {
+
+public class ChunkJoin implements Consumer<Chunk> {
 
     public ChunkJoin(OutputStream osm, Phaser phaser) {
         this.phaser= phaser;
         this.osm = osm;
     }
 
-    public void accept(SplitInput.Chunk c) {
+    public void accept(Chunk c) {
 
         try {
-            System.out.println(c.sequence+ "; pos:"+ c.pos);
             //data might be compressed, c.pos is uncompressed length
             osm.write(c.data);
 

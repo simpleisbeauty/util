@@ -1,4 +1,4 @@
-package org.simple.example;
+package org.simple.util.chunk;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -6,9 +6,9 @@ import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 
 
-public class ChunkUnCompress implements Function<SplitInput.Chunk, SplitInput.Chunk> {
+public class ChunkUnCompress implements Function<ChunkStore.Chunk, ChunkStore.Chunk> {
 
-    public SplitInput.Chunk apply(SplitInput.Chunk in) {
+    public ChunkStore.Chunk apply(ChunkStore.Chunk in) {
 
         try (ByteArrayInputStream bis = new ByteArrayInputStream(in.data);
              ByteArrayOutputStream bos = new ByteArrayOutputStream();
