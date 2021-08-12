@@ -1,16 +1,38 @@
 package org.simple.nio;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 
-public interface NioChannel extends Channel{
+public abstract class NioChannel implements Channel {
 
-	void read(byte[] in);
-	
-	void write(byte[] out);
+    public NioChannel(NioChannelContext context){
+        this.context= context;
+    }
 
-	void flush();
+    public void write(byte[] out){
+        context.write(out);
+    }
 
-	InetSocketAddress getRemoteAddress();
+    public abstract void read(byte[] in);
+
+    public void flush(){
+        context.flush();
+    }
+
+    @Override
+    public boolean isOpen(){ return context.isOpen();}
+
+    @Override
+    public void close() throws IOException {
+        context.close();
+    }
+
+    public InetSocketAddress getRemoteAddress(){
+
+        return context.getRemoteAddress();
+    }
+
+    protected final NioChannelContext context;
 
 }

@@ -1,5 +1,8 @@
 package org.simple.nio;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -20,6 +23,7 @@ public class NioSelect implements Runnable, AutoCloseable {
         readBuff= ByteBuffer.allocate(bufSize);
         select = Selector.open();
         servers= new ConcurrentHashMap<Integer, NioChannelHandler>();
+        logger= LoggerFactory.getLogger(getClass());
     }
 
     public void run() {
@@ -60,7 +64,7 @@ public class NioSelect implements Runnable, AutoCloseable {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("nio select:", e);
             }
         }
     }
@@ -81,12 +85,12 @@ public class NioSelect implements Runnable, AutoCloseable {
         return key;
     }
 
-    public AbstractNioChannel connect(InetAddress addr, int port, NioChannelHandler connHandler) throws IOException {
+    public NioChannel connect(InetAddress addr, int port, NioChannelHandler connHandler) throws IOException {
         SocketChannel sch = SocketChannel.open();
         sch.configureBlocking(false);
         sch.connect(new InetSocketAddress(addr, port));
         MyChannelContext chContext = new MyChannelContext(sch);
-        AbstractNioChannel nch = connHandler.newChannel(chContext);
+        NioChannel nch = connHandler.newChannel(chContext);
        register(sch, SelectionKey.OP_CONNECT, nch);
 
         return nch;
@@ -97,7 +101,7 @@ public class NioSelect implements Runnable, AutoCloseable {
             try {
                 sch.register(select, interestOps, attach);
             } catch (ClosedChannelException e) {
-                e.printStackTrace();
+                logger.error("register server channel:", e);
             }
         });
         if (wait) select.wakeup();
@@ -110,18 +114,16 @@ public class NioSelect implements Runnable, AutoCloseable {
         // Accept the connection and make it non-blocking
         SocketChannel sch = srvSocketCh.accept();
         sch.configureBlocking(false);
-        System.out.println("accepted new client from:" + sch.getRemoteAddress());
-        System.out.println("local address:" + sch.getLocalAddress());
         MyChannelContext chContext = new MyChannelContext(sch);
 
-        AbstractNioChannel nch = servers.get(srvSocketCh.hashCode()).newChannel(chContext);
+        NioChannel nch = servers.get(srvSocketCh.hashCode()).newChannel(chContext);
         sch.register(select, SelectionKey.OP_READ, nch);
     }
 
     private void read(SelectionKey key) throws IOException {
 
         SocketChannel ch = (SocketChannel) key.channel();
-        AbstractNioChannel nch = (AbstractNioChannel) key.attachment();
+        NioChannel nch = (NioChannel) key.attachment();
         int numRead;
 
         try {
@@ -138,14 +140,10 @@ public class NioSelect implements Runnable, AutoCloseable {
                     byte[] arry = new byte[numRead];
                     readBuff.flip();
                     readBuff.get(arry);
-                    //System.arraycopy(readBuff.array(), 0, arry, 0, numRead);
                     nch.read(arry); // call back read
                     if(numRead < readBuff.capacity()){
                         nch.flush();
                         break; // no more to read from channel
-                    }
-                    else{
-                        System.out.println("numRead:"+ numRead+ ", capacity:"+ readBuff.capacity());
                     }
 
                 }
@@ -154,7 +152,7 @@ public class NioSelect implements Runnable, AutoCloseable {
         } catch (IOException e) {
             // The remote closed the connection, cancel
             // the selection key and close the channel.
-            e.printStackTrace();
+            logger.error("read "+ nch.getRemoteAddress(), e);
             numRead= -1;
         }
         if (numRead == -1) {
@@ -167,7 +165,7 @@ public class NioSelect implements Runnable, AutoCloseable {
     private void write(SelectionKey key) throws IOException {
 
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        AbstractNioChannel nch = (AbstractNioChannel) key.attachment();
+        NioChannel nch = (NioChannel) key.attachment();
 
         ConcurrentLinkedQueue<ByteBuffer> que = ((MyChannelContext) nch.context).outQueue;
 
@@ -196,7 +194,7 @@ public class NioSelect implements Runnable, AutoCloseable {
             // Write mode after connection success
             key.interestOps(SelectionKey.OP_WRITE);
         } catch (IOException e) {
-            e.printStackTrace();
+           logger.error("finishConnection:", e);
             key.cancel(); // cancel the connection
         }
 
@@ -232,12 +230,15 @@ public class NioSelect implements Runnable, AutoCloseable {
             }
         }
 
+        @Override
         public void write(byte[] out) {
             outQueue.offer(ByteBuffer.wrap(out));
         }
 
+        @Override
         public boolean isOpen(){return sch.isOpen();}
 
+        @Override
         public void close() throws IOException {
             sch.close();
         }
@@ -255,4 +256,6 @@ public class NioSelect implements Runnable, AutoCloseable {
 
     private ByteBuffer readBuff;
     private ConcurrentLinkedQueue<Runnable> wakeup2do = new ConcurrentLinkedQueue<Runnable>();
+
+    private Logger logger;
 }

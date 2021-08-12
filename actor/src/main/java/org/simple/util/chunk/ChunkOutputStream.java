@@ -86,8 +86,8 @@ public class ChunkOutputStream extends OutputStream {
 
     protected int length= 0;
     private FunctionActor<Chunk, Chunk> actor;
-    private Phaser phaser;
-    private ArrayList<Chunk> chunks;
+    private final Phaser phaser;
+    private final ArrayList<Chunk> chunks;
 
     private int status= -1;
 }

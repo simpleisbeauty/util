@@ -1,6 +1,6 @@
 package org.simple.example;
 
-import org.simple.nio.AbstractNioChannel;
+import org.simple.nio.NioChannel;
 import org.simple.nio.NioChannelContext;
 import org.simple.nio.NioChannelHandler;
 import org.simple.nio.NioSelect;
@@ -21,13 +21,13 @@ public class EchoNioServer implements NioChannelHandler{
         }
     }
 
-    public AbstractNioChannel newChannel(NioChannelContext context) {
+    public NioChannel newChannel(NioChannelContext context) {
         EchoNioChannel ch= new EchoNioChannel(context);
         channels.add(ch);
         return ch;
     }
 
-    private class EchoNioChannel extends AbstractNioChannel{
+    private class EchoNioChannel extends NioChannel {
 
         public EchoNioChannel(NioChannelContext context) {
 
@@ -39,13 +39,8 @@ public class EchoNioServer implements NioChannelHandler{
             });
         }
 
+        @Override
         public void read(byte[] in) {
-
-            /*CompletableFuture.supplyAsync(()->{
-                System.out.println("Server got "+ getRemoteAddress()+ ": "+ new String(in));
-                return in;
-            }).thenAccept(bts -> {write(bts); flush();});*/
-
             echo.accept(in);
         }
 
